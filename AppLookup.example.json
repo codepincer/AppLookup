@@ -1,0 +1,9 @@
+{
+  "ApiUrl": "https://www.steamcardexchange.net/api/request.php?GetInventory",
+  "CacheMinutes": 30,
+  "UseDiskCache": true,
+  "UseMemoryCache": false,
+  "MaxResults": 3,
+  "Aliases": ["applookup", "look"],
+  "MinimumAccess": "Operator"
+}

@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Version>1.0.0.0</Version>
+    <AssemblyName>AppLookup</AssemblyName>
+    <RootNamespace>AppLookup</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Keep the ASF submodule's own source files out of this plugin's compilation -->
+    <Compile Remove="ArchiSteamFarm\**" />
+    <EmbeddedResource Remove="ArchiSteamFarm\**" />
+    <None Remove="ArchiSteamFarm\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Already shipped inside ASF, so compile-only -->
+    <PackageReference Include="System.Composition.AttributedModel" IncludeAssets="compile" Version="10.0.12" />
+  </ItemGroup>
+
+  <!-- Submodule build only: ASF's source generator also runs here and needs the OpenApi types (compile-only, not copied to output) -->
+  <ItemGroup Condition="'$(AsfDll)' == ''">
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" IncludeAssets="compile" Version="10.0.12" />
+  </ItemGroup>
+
+  <!--
+    Option 1 (downloaded ASF release): pass the path to ArchiSteamFarm.dll on the command line:
+      dotnet build -c Release -p:AsfDll="C:\Path\To\ASF-generic\ArchiSteamFarm.dll" -o out
+  -->
+  <PropertyGroup Condition="'$(AsfDll)' != ''">
+    <AsfDir>$([System.IO.Path]::GetDirectoryName('$(AsfDll)'))</AsfDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(AsfDll)' != ''">
+    <Reference Include="ArchiSteamFarm" HintPath="$(AsfDll)" Private="false" />
+
+    <!-- ASF types expose these libraries, so the compiler may need them too (compile-only, not copied to output) -->
+    <Reference Include="SteamKit2" HintPath="$(AsfDir)\SteamKit2.dll" Private="false" Condition="Exists('$(AsfDir)\SteamKit2.dll')" />
+    <Reference Include="AngleSharp" HintPath="$(AsfDir)\AngleSharp.dll" Private="false" Condition="Exists('$(AsfDir)\AngleSharp.dll')" />
+    <Reference Include="protobuf-net" HintPath="$(AsfDir)\protobuf-net.dll" Private="false" Condition="Exists('$(AsfDir)\protobuf-net.dll')" />
+    <Reference Include="protobuf-net.Core" HintPath="$(AsfDir)\protobuf-net.Core.dll" Private="false" Condition="Exists('$(AsfDir)\protobuf-net.Core.dll')" />
+    <Reference Include="Newtonsoft.Json" HintPath="$(AsfDir)\Newtonsoft.Json.dll" Private="false" Condition="Exists('$(AsfDir)\Newtonsoft.Json.dll')" />
+  </ItemGroup>
+
+  <!--
+    Option 2 (ASF source tree, e.g. a git submodule in ./ArchiSteamFarm): used when AsfDll is not set.
+  -->
+  <ItemGroup Condition="'$(AsfDll)' == ''">
+    <ProjectReference Include="ArchiSteamFarm\ArchiSteamFarm\ArchiSteamFarm.csproj" ExcludeAssets="all" Private="false" />
+  </ItemGroup>
+
+</Project>
